@@ -15,5 +15,8 @@ func main() {
 
 	port := "8080"
 	fmt.Println("Server running on port " + port)
-	router.Run(":" + port)
+
+	if err := router.Run(":" + port); err != nil {
+		fmt.Println("Error starting server:", err)
+	}
 }
