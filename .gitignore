@@ -1,2 +1,10 @@
 .idea/
 .env
+
+# Ignore Go build artifacts
+/bin/
+/pkg/
+/build/
+*.exe
+*.out
+*.test
