@@ -2,9 +2,12 @@ package main
 
 import (
 	"fmt"
-	"github.com/gin-gonic/gin"
+	"log"
+
 	"github.com/tactics177/go-auth-api/config"
-	"net/http"
+	"github.com/tactics177/go-auth-api/routes"
+
+	"github.com/gin-gonic/gin"
 )
 
 func main() {
@@ -12,14 +15,15 @@ func main() {
 
 	router := gin.Default()
 
+	routes.AuthRoutes(router)
+
 	router.GET("/73f2fc18-3053-4c38-943a-416d16432450/health", func(c *gin.Context) {
-		c.JSON(http.StatusOK, gin.H{"message": "API is running"})
+		c.JSON(200, gin.H{"message": "API is running"})
 	})
 
 	port := "8080"
-	fmt.Println("Server running on port " + port)
-
+	fmt.Println("Server running on port", port)
 	if err := router.Run(":" + port); err != nil {
-		fmt.Println("Error starting server:", err)
+		log.Fatal("Server failed to start:", err)
 	}
 }

@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/joho/godotenv"
+	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
@@ -41,4 +42,25 @@ func ConnectDB() {
 	fmt.Println("Connected to MongoDB Atlas successfully!")
 
 	DB = client.Database("go-auth-api")
+
+	createIndexes()
+}
+
+func createIndexes() {
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
+	userCollection := DB.Collection("users")
+
+	emailIndex := mongo.IndexModel{
+		Keys:    bson.D{{"email", 1}},
+		Options: options.Index().SetUnique(true),
+	}
+
+	_, err := userCollection.Indexes().CreateOne(ctx, emailIndex)
+	if err != nil {
+		log.Fatal("Error creating email index:", err)
+	}
+
+	fmt.Println("Indexes created successfully!")
 }
