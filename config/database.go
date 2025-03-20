@@ -14,7 +14,7 @@ import (
 )
 
 var DB *mongo.Database
-var JWT_SECRET string
+var JwtSecret string
 
 func ConnectDB() {
 	err := godotenv.Load()
@@ -27,8 +27,8 @@ func ConnectDB() {
 		log.Fatal("MONGO_URI not found in environment")
 	}
 
-	JWT_SECRET = os.Getenv("JWT_SECRET")
-	if JWT_SECRET == "" {
+	JwtSecret = os.Getenv("JWT_SECRET")
+	if JwtSecret == "" {
 		log.Fatal("JWT_SECRET not found in environment")
 	}
 
