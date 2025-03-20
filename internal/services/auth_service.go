@@ -6,7 +6,7 @@ import (
 	"errors"
 	"github.com/tactics177/go-auth-api/internal/models"
 	"github.com/tactics177/go-auth-api/internal/repositories"
-	utils2 "github.com/tactics177/go-auth-api/internal/utils"
+	"github.com/tactics177/go-auth-api/internal/utils"
 	"time"
 
 	"golang.org/x/crypto/bcrypt"
@@ -14,11 +14,11 @@ import (
 
 // RegisterUser handles user registration
 func RegisterUser(user *models.User) error {
-	if !utils2.ValidateEmail(user.Email) {
+	if !utils.ValidateEmail(user.Email) {
 		return errors.New("invalid email format")
 	}
 
-	if !utils2.ValidatePassword(user.Password) {
+	if !utils.ValidatePassword(user.Password) {
 		return errors.New("password must be at least 8 characters long and contain at least one letter and one number")
 	}
 
@@ -46,7 +46,7 @@ func RegisterUser(user *models.User) error {
 
 // AuthenticateUser validates login credentials
 func AuthenticateUser(email, password string) (string, error) {
-	if !utils2.ValidateEmail(email) {
+	if !utils.ValidateEmail(email) {
 		return "", errors.New("invalid email format")
 	}
 
@@ -60,7 +60,7 @@ func AuthenticateUser(email, password string) (string, error) {
 		return "", errors.New("invalid email or password")
 	}
 
-	token, err := utils2.GenerateJWT(*user)
+	token, err := utils.GenerateJWT(*user)
 	if err != nil {
 		return "", errors.New("failed to generate token")
 	}
@@ -79,7 +79,7 @@ func GenerateResetToken() (string, error) {
 
 // RequestPasswordReset handles forgot-password requests
 func RequestPasswordReset(email string) (string, error) {
-	if !utils2.ValidateEmail(email) {
+	if !utils.ValidateEmail(email) {
 		return "", errors.New("invalid email format")
 	}
 
