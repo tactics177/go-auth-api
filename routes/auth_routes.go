@@ -16,5 +16,6 @@ func AuthRoutes(router *gin.Engine) {
 
 		// Protected Routes
 		authGroup.GET("/me", middleware.AuthMiddleware(), handlers.GetUserProfile)
+		authGroup.POST("/logout", middleware.AuthMiddleware(), handlers.Logout)
 	}
 }

@@ -131,3 +131,8 @@ func GetUserProfile(c *gin.Context) {
 		"updated_at": user.UpdatedAt,
 	})
 }
+
+// Logout Handler
+func Logout(c *gin.Context) {
+	c.JSON(http.StatusOK, gin.H{"message": "Logged out successfully. Please remove the token from your client storage."})
+}
