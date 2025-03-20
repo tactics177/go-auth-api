@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"github.com/tactics177/go-auth-api/internal/models"
+	"github.com/tactics177/go-auth-api/internal/repositories"
 	"net/http"
 	"strings"
 
@@ -106,4 +107,27 @@ func ResetPassword(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, gin.H{"message": "Password reset successfully"})
+}
+
+// GetUserProfile Handler
+func GetUserProfile(c *gin.Context) {
+	userID, exists := c.Get("user_id")
+	if !exists {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized"})
+		return
+	}
+
+	user, err := repositories.GetUserByID(userID.(string))
+	if err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "User not found"})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"id":         user.ID.Hex(),
+		"name":       user.Name,
+		"email":      user.Email,
+		"created_at": user.CreatedAt,
+		"updated_at": user.UpdatedAt,
+	})
 }

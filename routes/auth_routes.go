@@ -3,6 +3,7 @@ package routes
 import (
 	"github.com/gin-gonic/gin"
 	"github.com/tactics177/go-auth-api/internal/handlers"
+	"github.com/tactics177/go-auth-api/internal/middleware"
 )
 
 func AuthRoutes(router *gin.Engine) {
@@ -12,5 +13,8 @@ func AuthRoutes(router *gin.Engine) {
 		authGroup.POST("/login", handlers.Login)
 		authGroup.POST("/forgot-password", handlers.ForgotPassword)
 		authGroup.POST("/reset-password", handlers.ResetPassword)
+
+		// Protected Routes
+		authGroup.GET("/me", middleware.AuthMiddleware(), handlers.GetUserProfile)
 	}
 }

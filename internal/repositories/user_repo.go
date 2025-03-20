@@ -50,3 +50,24 @@ func UpdateUserPassword(userID primitive.ObjectID, hashedPassword string) error 
 
 	return err
 }
+
+func GetUserByID(userID string) (*models.User, error) {
+	userCollection := config.DB.Collection("users")
+
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
+	// Convert userID to ObjectID
+	objID, err := primitive.ObjectIDFromHex(userID)
+	if err != nil {
+		return nil, errors.New("invalid user ID")
+	}
+
+	var user models.User
+	err = userCollection.FindOne(ctx, bson.M{"_id": objID}).Decode(&user)
+	if err != nil {
+		return nil, errors.New("user not found")
+	}
+
+	return &user, nil
+}
