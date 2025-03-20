@@ -102,3 +102,29 @@ func RequestPasswordReset(email string) (string, error) {
 
 	return token, nil
 }
+
+// ResetPassword handles resetting a user's password
+func ResetPassword(token, newPassword string) error {
+	if !utils.ValidatePassword(newPassword) {
+		return errors.New("password must be at least 8 characters long and contain at least one letter and one number")
+	}
+
+	resetRecord, err := repositories.GetPasswordResetToken(token)
+	if err != nil {
+		return err
+	}
+
+	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(newPassword), bcrypt.DefaultCost)
+	if err != nil {
+		return errors.New("error hashing new password")
+	}
+
+	err = repositories.UpdateUserPassword(resetRecord.UserID, string(hashedPassword))
+	if err != nil {
+		return errors.New("failed to update password")
+	}
+
+	_ = repositories.DeletePasswordResetToken(token)
+
+	return nil
+}

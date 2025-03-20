@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"github.com/tactics177/go-auth-api/internal/models"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 	"time"
 
 	"github.com/tactics177/go-auth-api/config"
@@ -32,5 +33,20 @@ func CreateUser(user *models.User) error {
 	defer cancel()
 
 	_, err := userCollection.InsertOne(ctx, user)
+	return err
+}
+
+func UpdateUserPassword(userID primitive.ObjectID, hashedPassword string) error {
+	userCollection := config.DB.Collection("users")
+
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
+	_, err := userCollection.UpdateOne(
+		ctx,
+		bson.M{"_id": userID},
+		bson.M{"$set": bson.M{"password": hashedPassword}},
+	)
+
 	return err
 }

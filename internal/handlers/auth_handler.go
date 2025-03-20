@@ -81,3 +81,29 @@ func ForgotPassword(c *gin.Context) {
 
 	c.JSON(http.StatusOK, gin.H{"message": "Password reset link has been sent", "token": token})
 }
+
+// ResetPassword Handler
+func ResetPassword(c *gin.Context) {
+	var requestData struct {
+		Token       string `json:"token"`
+		NewPassword string `json:"new_password"`
+	}
+
+	if err := c.ShouldBindJSON(&requestData); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request"})
+		return
+	}
+
+	if requestData.Token == "" || requestData.NewPassword == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Token and new password are required"})
+		return
+	}
+
+	err := services.ResetPassword(requestData.Token, requestData.NewPassword)
+	if err != nil {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"message": "Password reset successfully"})
+}
