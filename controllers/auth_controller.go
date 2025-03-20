@@ -2,6 +2,8 @@ package controllers
 
 import (
 	"context"
+	"crypto/rand"
+	"encoding/hex"
 	"github.com/golang-jwt/jwt/v5"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"net/http"
@@ -149,4 +151,72 @@ func Login(c *gin.Context) {
 		"message": "Login successful",
 		"token":   token,
 	})
+}
+
+func generateResetToken() (string, error) {
+	bytes := make([]byte, 16)
+	_, err := rand.Read(bytes)
+	if err != nil {
+		return "", err
+	}
+	return hex.EncodeToString(bytes), nil
+}
+
+func ForgotPassword(c *gin.Context) {
+	userCollection := config.DB.Collection("users")
+	resetCollection := config.DB.Collection("password_resets")
+
+	var requestData struct {
+		Email string `json:"email"`
+	}
+
+	if err := c.ShouldBindJSON(&requestData); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request"})
+		return
+	}
+
+	requestData.Email = strings.TrimSpace(requestData.Email)
+
+	if requestData.Email == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Email is required"})
+		return
+	}
+
+	if !emailRegex.MatchString(requestData.Email) {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid email format"})
+		return
+	}
+
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
+	var user models.User
+	err := userCollection.FindOne(ctx, bson.M{"email": requestData.Email}).Decode(&user)
+	if err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "Email not found"})
+		return
+	}
+
+	token, err := generateResetToken()
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to generate reset token"})
+		return
+	}
+
+	resetRecord := models.PasswordReset{
+		ID:        primitive.NewObjectID(),
+		UserID:    user.ID,
+		Token:     token,
+		ExpiresAt: time.Now().Add(time.Minute * 15),
+	}
+
+	_, err = resetCollection.InsertOne(ctx, resetRecord)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to save reset token"})
+		return
+	}
+
+	// TODO: Send email with token link
+
+	c.JSON(http.StatusOK, gin.H{"message": "Password reset link has been sent", "token": token})
 }

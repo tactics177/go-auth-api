@@ -58,6 +58,7 @@ func createIndexes() {
 	defer cancel()
 
 	userCollection := DB.Collection("users")
+	resetCollection := DB.Collection("password_resets")
 
 	emailIndex := mongo.IndexModel{
 		Keys:    bson.D{{"email", 1}},
@@ -67,6 +68,16 @@ func createIndexes() {
 	_, err := userCollection.Indexes().CreateOne(ctx, emailIndex)
 	if err != nil {
 		log.Fatal("Error creating email index:", err)
+	}
+
+	// TTL index to auto-delete expired password reset tokens
+	resetIndex := mongo.IndexModel{
+		Keys:    bson.D{{"expires_at", 1}},
+		Options: options.Index().SetExpireAfterSeconds(0),
+	}
+	_, err = resetCollection.Indexes().CreateOne(ctx, resetIndex)
+	if err != nil {
+		log.Fatal("Error creating password reset TTL index:", err)
 	}
 
 	fmt.Println("Indexes created successfully!")
