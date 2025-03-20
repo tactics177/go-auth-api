@@ -14,6 +14,7 @@ import (
 )
 
 var DB *mongo.Database
+var JWT_SECRET string
 
 func ConnectDB() {
 	err := godotenv.Load()
@@ -24,6 +25,11 @@ func ConnectDB() {
 	mongoURI := os.Getenv("MONGO_URI")
 	if mongoURI == "" {
 		log.Fatal("MONGO_URI not found in environment")
+	}
+
+	JWT_SECRET = os.Getenv("JWT_SECRET")
+	if JWT_SECRET == "" {
+		log.Fatal("JWT_SECRET not found in environment")
 	}
 
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
@@ -44,6 +50,7 @@ func ConnectDB() {
 	DB = client.Database("go-auth-api")
 
 	createIndexes()
+	fmt.Println("JWT Secret loaded successfully!")
 }
 
 func createIndexes() {

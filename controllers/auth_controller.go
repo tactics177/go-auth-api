@@ -2,6 +2,7 @@ package controllers
 
 import (
 	"context"
+	"github.com/golang-jwt/jwt/v5"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"net/http"
 	"regexp"
@@ -84,6 +85,17 @@ func Register(c *gin.Context) {
 	c.JSON(http.StatusCreated, gin.H{"message": "User registered successfully"})
 }
 
+func generateToken(user models.User) (string, error) {
+	claims := jwt.MapClaims{
+		"user_id": user.ID.Hex(),
+		"email":   user.Email,
+		"exp":     time.Now().Add(time.Hour * 24).Unix(),
+	}
+
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
+	return token.SignedString([]byte(config.JWT_SECRET))
+}
+
 // Login login endpoint
 func Login(c *gin.Context) {
 	userCollection := config.DB.Collection("users")
@@ -127,5 +139,14 @@ func Login(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"message": "Login successful"})
+	token, err := generateToken(user)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to generate token"})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"message": "Login successful",
+		"token":   token,
+	})
 }
