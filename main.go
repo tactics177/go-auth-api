@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"log"
+	"os"
 
 	"github.com/tactics177/go-auth-api/config"
 	"github.com/tactics177/go-auth-api/routes"
@@ -21,7 +22,10 @@ func main() {
 		c.JSON(200, gin.H{"message": "API is running"})
 	})
 
-	port := "8080"
+	port := os.Getenv("PORT")
+	if port == "" {
+		port = "8080"
+	}
 	fmt.Println("Server running on port", port)
 	if err := router.Run(":" + port); err != nil {
 		log.Fatal("Server failed to start:", err)
