@@ -106,7 +106,7 @@ func ResetPassword(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"message": "Password reset successfully"})
+	c.Status(http.StatusNoContent)
 }
 
 // GetUserProfile Handler
@@ -134,5 +134,5 @@ func GetUserProfile(c *gin.Context) {
 
 // Logout Handler
 func Logout(c *gin.Context) {
-	c.JSON(http.StatusOK, gin.H{"message": "Logged out successfully. Please remove the token from your client storage."})
+	c.Status(http.StatusNoContent)
 }
