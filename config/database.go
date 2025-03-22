@@ -81,5 +81,17 @@ func createIndexes() {
 		log.Fatal("Error creating password reset TTL index:", err)
 	}
 
+	// TTL index on blacklisted_tokens
+	blacklistCollection := DB.Collection("blacklisted_tokens")
+
+	ttlIndex := mongo.IndexModel{
+		Keys:    bson.D{{Key: "expires_at", Value: 1}},
+		Options: options.Index().SetExpireAfterSeconds(0),
+	}
+	_, err = blacklistCollection.Indexes().CreateOne(ctx, ttlIndex)
+	if err != nil {
+		log.Fatal("Error creating TTL index on blacklisted_tokens:", err)
+	}
+
 	fmt.Println("Indexes created successfully!")
 }

@@ -1,14 +1,13 @@
 package handlers
 
 import (
+	"github.com/gin-gonic/gin"
 	"github.com/tactics177/go-auth-api/internal/models"
 	"github.com/tactics177/go-auth-api/internal/repositories"
+	"github.com/tactics177/go-auth-api/internal/services"
 	"github.com/tactics177/go-auth-api/internal/utils"
 	"net/http"
 	"strings"
-
-	"github.com/gin-gonic/gin"
-	"github.com/tactics177/go-auth-api/internal/services"
 )
 
 // Register Handler
@@ -135,12 +134,6 @@ func GetUserProfile(c *gin.Context) {
 		return
 	}
 
-	email, emailExists := c.Get("email")
-	if !emailExists || email == "" {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized"})
-		return
-	}
-
 	user, err := repositories.GetUserByID(userID.(string))
 	if err != nil {
 		c.JSON(http.StatusNotFound, gin.H{"error": "User not found"})
@@ -158,5 +151,25 @@ func GetUserProfile(c *gin.Context) {
 
 // Logout Handler
 func Logout(c *gin.Context) {
+	authHeader := c.GetHeader("Authorization")
+	if !strings.HasPrefix(authHeader, "Bearer ") {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Missing token"})
+		return
+	}
+
+	tokenString := strings.TrimPrefix(authHeader, "Bearer ")
+
+	claims, err := utils.ValidateJWT(tokenString)
+	if err != nil {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid token"})
+		return
+	}
+
+	err = repositories.BlacklistToken(tokenString, claims.ExpiresAt.Time)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to blacklist token"})
+		return
+	}
+
 	c.Status(http.StatusNoContent)
 }

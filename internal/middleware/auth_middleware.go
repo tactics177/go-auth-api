@@ -1,6 +1,7 @@
 package middleware
 
 import (
+	"github.com/tactics177/go-auth-api/internal/repositories"
 	"net/http"
 	"strings"
 
@@ -23,6 +24,19 @@ func AuthMiddleware() gin.HandlerFunc {
 		claims, err := utils.ValidateJWT(tokenString)
 		if err != nil {
 			c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid or expired token"})
+			c.Abort()
+			return
+		}
+
+		isBlacklisted, err := repositories.IsTokenBlacklisted(tokenString)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to validate token"})
+			c.Abort()
+			return
+		}
+
+		if isBlacklisted {
+			c.JSON(http.StatusUnauthorized, gin.H{"error": "Token has been revoked"})
 			c.Abort()
 			return
 		}
