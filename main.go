@@ -19,7 +19,7 @@ func main() {
 	routes.AuthRoutes(router)
 
 	router.GET("/73f2fc18-3053-4c38-943a-416d16432450/health", func(c *gin.Context) {
-		c.JSON(200, gin.H{"message": "API is running"})
+		c.JSON(200, gin.H{"message": "test"})
 	})
 
 	port := os.Getenv("PORT")
