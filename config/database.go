@@ -18,8 +18,9 @@ var JwtSecret string
 
 func ConnectDB() {
 	err := godotenv.Load()
+	// .env for local development, environment variables for cloud deployment
 	if err != nil {
-		log.Fatal("Error loading .env file")
+		log.Println("Warning: .env file not found, relying on environment variables")
 	}
 
 	mongoURI := os.Getenv("MONGO_URI")
