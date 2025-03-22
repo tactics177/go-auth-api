@@ -49,7 +49,14 @@ func Login(c *gin.Context) {
 
 	token, err := services.AuthenticateUser(strings.TrimSpace(loginData.Email), strings.TrimSpace(loginData.Password))
 	if err != nil {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": err.Error()})
+		switch err.Error() {
+		case "invalid email format":
+			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		case "failed to generate token":
+			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		default:
+			c.JSON(http.StatusUnauthorized, gin.H{"error": err.Error()})
+		}
 		return
 	}
 
