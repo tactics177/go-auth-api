@@ -19,7 +19,7 @@ login, password reset, token-based authorization, and logout with JWT blacklisti
 
 **Base URL**: [`https://go-auth-api-e7bo.onrender.com/`](https://go-auth-api-e7bo.onrender.com/)
 
-All endpoints are prefixed with your group code 73f2fc18-3053-4c38-943a-416d16432450
+All endpoints are prefixed with our group code 73f2fc18-3053-4c38-943a-416d16432450
 
 ---
 
