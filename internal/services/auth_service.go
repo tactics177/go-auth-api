@@ -46,10 +46,6 @@ func RegisterUser(user *models.User) error {
 
 // AuthenticateUser validates login credentials
 func AuthenticateUser(email, password string) (string, error) {
-	if !utils.ValidateEmail(email) {
-		return "", errors.New("invalid email format")
-	}
-
 	user, err := repositories.GetUserByEmail(email)
 	if err != nil {
 		return "", errors.New("invalid email or password")

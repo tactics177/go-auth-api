@@ -3,6 +3,7 @@ package handlers
 import (
 	"github.com/tactics177/go-auth-api/internal/models"
 	"github.com/tactics177/go-auth-api/internal/repositories"
+	"github.com/tactics177/go-auth-api/internal/utils"
 	"net/http"
 	"strings"
 
@@ -47,16 +48,26 @@ func Login(c *gin.Context) {
 		return
 	}
 
-	token, err := services.AuthenticateUser(strings.TrimSpace(loginData.Email), strings.TrimSpace(loginData.Password))
+	email := strings.TrimSpace(loginData.Email)
+	password := strings.TrimSpace(loginData.Password)
+
+	if email == "" || password == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Email and password are required"})
+		return
+	}
+
+	if !utils.ValidateEmail(email) {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid email format"})
+		return
+	}
+
+	token, err := services.AuthenticateUser(email, password)
 	if err != nil {
-		switch err.Error() {
-		case "invalid email format":
-			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-		case "failed to generate token":
+		if err.Error() == "failed to generate token" {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-		default:
-			c.JSON(http.StatusUnauthorized, gin.H{"error": err.Error()})
+			return
 		}
+		c.JSON(http.StatusUnauthorized, gin.H{"error": err.Error()})
 		return
 	}
 
