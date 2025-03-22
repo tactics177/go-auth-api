@@ -135,9 +135,15 @@ func GetUserProfile(c *gin.Context) {
 		return
 	}
 
+	email, emailExists := c.Get("email")
+	if !emailExists || email == "" {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized"})
+		return
+	}
+
 	user, err := repositories.GetUserByID(userID.(string))
 	if err != nil {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized"})
+		c.JSON(http.StatusNotFound, gin.H{"error": "User not found"})
 		return
 	}
 
