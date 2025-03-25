@@ -60,9 +60,9 @@ func Login(c *gin.Context) {
 		return
 	}
 
-	token, err := services.AuthenticateUser(email, password)
+	accessToken, refreshToken, err := services.AuthenticateUser(email, password)
 	if err != nil {
-		if err.Error() == "failed to generate token" {
+		if err.Error() == "failed to generate token" || err.Error() == "failed to generate refresh token" {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
 		}
@@ -70,7 +70,11 @@ func Login(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"message": "Login successful", "token": token})
+	c.JSON(http.StatusOK, gin.H{
+		"message":      "Login successful",
+		"token":        accessToken,
+		"refreshToken": refreshToken,
+	})
 }
 
 // ForgotPassword Handler
