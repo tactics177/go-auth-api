@@ -8,6 +8,7 @@ import (
 	"github.com/tactics177/go-auth-api/internal/utils"
 	"net/http"
 	"strings"
+	"time"
 )
 
 // Register Handler
@@ -200,11 +201,26 @@ func RefreshToken(c *gin.Context) {
 		return
 	}
 
-	newToken, err := utils.GenerateJWT(*user)
+	newAccessToken, err := utils.GenerateJWT(*user)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to generate access token"})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to generate token"})
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"token": newToken})
+	newRefreshToken, err := utils.GenerateRefreshToken()
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to generate refresh token"})
+		return
+	}
+
+	err = repositories.SaveRefreshToken(user.ID, newRefreshToken, time.Now().Add(7*24*time.Hour))
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to store refresh token"})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"token":        newAccessToken,
+		"refreshToken": newRefreshToken,
+	})
 }
