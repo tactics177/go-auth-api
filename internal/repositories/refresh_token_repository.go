@@ -37,3 +37,12 @@ func FindRefreshToken(token string) (*models.RefreshToken, error) {
 
 	return &result, nil
 }
+
+func DeleteRefreshToken(token string) error {
+	collection := config.DB.Collection("refresh_tokens")
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
+	_, err := collection.DeleteOne(ctx, bson.M{"token": token})
+	return err
+}

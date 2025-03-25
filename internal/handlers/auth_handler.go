@@ -201,6 +201,12 @@ func RefreshToken(c *gin.Context) {
 		return
 	}
 
+	err = repositories.DeleteRefreshToken(req.RefreshToken)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to revoke old refresh token"})
+		return
+	}
+
 	newAccessToken, err := utils.GenerateJWT(*user)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to generate token"})
