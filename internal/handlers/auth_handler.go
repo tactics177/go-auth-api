@@ -180,7 +180,7 @@ func Logout(c *gin.Context) {
 
 func RefreshToken(c *gin.Context) {
 	var req struct {
-		RefreshToken string `json:"token"`
+		RefreshToken string `json:"refreshToken"`
 	}
 
 	if err := c.ShouldBindJSON(&req); err != nil || strings.TrimSpace(req.RefreshToken) == "" {
