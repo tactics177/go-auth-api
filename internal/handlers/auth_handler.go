@@ -177,3 +177,34 @@ func Logout(c *gin.Context) {
 
 	c.Status(http.StatusNoContent)
 }
+
+func RefreshToken(c *gin.Context) {
+	var req struct {
+		RefreshToken string `json:"refresh_token"`
+	}
+
+	if err := c.ShouldBindJSON(&req); err != nil || strings.TrimSpace(req.RefreshToken) == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Refresh token required"})
+		return
+	}
+
+	stored, err := repositories.FindRefreshToken(req.RefreshToken)
+	if err != nil {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid or expired refresh token"})
+		return
+	}
+
+	user, err := repositories.GetUserByID(stored.UserID.Hex())
+	if err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "User not found"})
+		return
+	}
+
+	newToken, err := utils.GenerateJWT(*user)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to generate access token"})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"token": newToken})
+}

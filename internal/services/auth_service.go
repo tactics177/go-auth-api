@@ -66,6 +66,12 @@ func AuthenticateUser(email, password string) (string, string, error) {
 		return "", "", errors.New("failed to generate refresh token")
 	}
 
+	expiresAt := time.Now().Add(7 * 24 * time.Hour)
+	err = repositories.SaveRefreshToken(user.ID, refreshToken, expiresAt)
+	if err != nil {
+		return "", "", errors.New("failed to store refresh token")
+	}
+
 	return accessToken, refreshToken, nil
 }
 
