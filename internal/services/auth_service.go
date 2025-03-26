@@ -50,23 +50,39 @@ func RegisterUser(user *models.User) error {
 }
 
 // AuthenticateUser validates login credentials
-func AuthenticateUser(email, password string) (string, error) {
+func AuthenticateUser(email, password string) (string, string, error) {
 	user, err := repositories.GetUserByEmail(email)
 	if err != nil {
-		return "", errors.New("invalid email or password")
+		return "", "", errors.New("invalid email or password")
 	}
 
 	err = bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(password))
 	if err != nil {
-		return "", errors.New("invalid email or password")
+		return "", "", errors.New("invalid email or password")
 	}
 
-	token, err := utils.GenerateJWT(*user)
+	accessToken, err := utils.GenerateJWT(*user)
 	if err != nil {
-		return "", errors.New("failed to generate token")
+		return "", "", errors.New("failed to generate token")
 	}
 
-	return token, nil
+	refreshToken, err := utils.GenerateRefreshToken()
+	if err != nil {
+		return "", "", errors.New("failed to generate refresh token")
+	}
+
+	err = repositories.DeleteAllRefreshTokensForUser(user.ID)
+	if err != nil {
+		return "", "", errors.New("failed to revoke old tokens")
+	}
+
+	expiresAt := time.Now().Add(7 * 24 * time.Hour)
+	err = repositories.SaveRefreshToken(user.ID, refreshToken, expiresAt)
+	if err != nil {
+		return "", "", errors.New("failed to store refresh token")
+	}
+
+	return accessToken, refreshToken, nil
 }
 
 func GenerateResetToken() (string, error) {

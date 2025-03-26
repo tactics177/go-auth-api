@@ -1,6 +1,8 @@
 package utils
 
 import (
+	"crypto/rand"
+	"encoding/base64"
 	"errors"
 	"github.com/tactics177/go-auth-api/internal/models"
 	"time"
@@ -20,7 +22,7 @@ func GenerateJWT(user models.User) (string, error) {
 		UserID: user.ID.Hex(),
 		Email:  user.Email,
 		RegisteredClaims: jwt.RegisteredClaims{
-			ExpiresAt: jwt.NewNumericDate(time.Now().Add(time.Hour * 24)),
+			ExpiresAt: jwt.NewNumericDate(time.Now().Add(time.Hour)),
 		},
 	}
 
@@ -43,4 +45,14 @@ func ValidateJWT(tokenString string) (*Claims, error) {
 	}
 
 	return claims, nil
+}
+
+func GenerateRefreshToken() (string, error) {
+	bytes := make([]byte, 64)
+	_, err := rand.Read(bytes)
+	if err != nil {
+		return "", errors.New("failed to generate refresh token")
+	}
+
+	return base64.URLEncoding.EncodeToString(bytes), nil
 }

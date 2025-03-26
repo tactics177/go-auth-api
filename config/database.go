@@ -84,13 +84,27 @@ func createIndexes() {
 	// TTL index on blacklisted_tokens
 	blacklistCollection := DB.Collection("blacklisted_tokens")
 
-	ttlIndex := mongo.IndexModel{
+	ttlIndexBlacklistedToken := mongo.IndexModel{
 		Keys:    bson.D{{Key: "expires_at", Value: 1}},
 		Options: options.Index().SetExpireAfterSeconds(0),
 	}
-	_, err = blacklistCollection.Indexes().CreateOne(ctx, ttlIndex)
+	_, err = blacklistCollection.Indexes().CreateOne(ctx, ttlIndexBlacklistedToken)
 	if err != nil {
 		log.Fatal("Error creating TTL index on blacklisted_tokens:", err)
+	}
+
+	// TTL index on refresh_tokens
+	refreshTokens := DB.Collection("refresh_tokens")
+
+	ttlIndexRefreshToken := mongo.IndexModel{
+		Keys: bson.D{{Key: "expires_at", Value: 1}},
+		Options: options.Index().
+			SetExpireAfterSeconds(0),
+	}
+
+	_, err = refreshTokens.Indexes().CreateOne(ctx, ttlIndexRefreshToken)
+	if err != nil {
+		log.Fatal("Error creating TTL index for refresh_tokens:", err)
 	}
 
 	fmt.Println("Indexes created successfully!")

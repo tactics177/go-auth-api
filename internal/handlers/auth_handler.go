@@ -6,8 +6,10 @@ import (
 	"github.com/tactics177/go-auth-api/internal/repositories"
 	"github.com/tactics177/go-auth-api/internal/services"
 	"github.com/tactics177/go-auth-api/internal/utils"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 	"net/http"
 	"strings"
+	"time"
 )
 
 // Register Handler
@@ -60,9 +62,9 @@ func Login(c *gin.Context) {
 		return
 	}
 
-	token, err := services.AuthenticateUser(email, password)
+	accessToken, refreshToken, err := services.AuthenticateUser(email, password)
 	if err != nil {
-		if err.Error() == "failed to generate token" {
+		if err.Error() == "failed to generate token" || err.Error() == "failed to generate refresh token" {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
 		}
@@ -70,7 +72,11 @@ func Login(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"message": "Login successful", "token": token})
+	c.JSON(http.StatusOK, gin.H{
+		"message":      "Login successful",
+		"token":        accessToken,
+		"refreshToken": refreshToken,
+	})
 }
 
 // ForgotPassword Handler
@@ -149,7 +155,6 @@ func GetUserProfile(c *gin.Context) {
 	})
 }
 
-// Logout Handler
 func Logout(c *gin.Context) {
 	authHeader := c.GetHeader("Authorization")
 	if !strings.HasPrefix(authHeader, "Bearer ") {
@@ -171,5 +176,62 @@ func Logout(c *gin.Context) {
 		return
 	}
 
+	objectID, err := primitive.ObjectIDFromHex(claims.UserID)
+	if err == nil {
+		_ = repositories.DeleteAllRefreshTokensForUser(objectID)
+	}
+
 	c.Status(http.StatusNoContent)
+}
+
+func RefreshToken(c *gin.Context) {
+	var req struct {
+		RefreshToken string `json:"refreshToken"`
+	}
+
+	if err := c.ShouldBindJSON(&req); err != nil || strings.TrimSpace(req.RefreshToken) == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Refresh token required"})
+		return
+	}
+
+	stored, err := repositories.FindRefreshToken(req.RefreshToken)
+	if err != nil {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid or expired refresh token"})
+		return
+	}
+
+	user, err := repositories.GetUserByID(stored.UserID.Hex())
+	if err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "User not found"})
+		return
+	}
+
+	err = repositories.DeleteAllRefreshTokensForUser(user.ID)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to revoke old refresh tokens"})
+		return
+	}
+
+	newAccessToken, err := utils.GenerateJWT(*user)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to generate access token"})
+		return
+	}
+
+	newRefreshToken, err := utils.GenerateRefreshToken()
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to generate refresh token"})
+		return
+	}
+
+	err = repositories.SaveRefreshToken(user.ID, newRefreshToken, time.Now().Add(7*24*time.Hour))
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to store refresh token"})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"token":        newAccessToken,
+		"refreshToken": newRefreshToken,
+	})
 }

@@ -13,6 +13,7 @@ func AuthRoutes(router *gin.Engine) {
 		authGroup.POST("/login", handlers.Login)
 		authGroup.POST("/forgot-password", handlers.ForgotPassword)
 		authGroup.POST("/reset-password", handlers.ResetPassword)
+		authGroup.POST("/refresh", handlers.RefreshToken)
 
 		// Protected Routes
 		authGroup.GET("/me", middleware.AuthMiddleware(), handlers.GetUserProfile)
