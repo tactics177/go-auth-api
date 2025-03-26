@@ -12,6 +12,11 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
+var RegisterUserFn = RegisterUser
+var AuthenticateUserFn = AuthenticateUser
+var RequestPasswordResetFn = RequestPasswordReset
+var ResetPasswordFn = ResetPassword
+
 // RegisterUser handles user registration
 func RegisterUser(user *models.User) error {
 	if !utils.ValidateEmail(user.Email) {

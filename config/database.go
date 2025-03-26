@@ -48,7 +48,7 @@ func ConnectDB() {
 
 	fmt.Println("Connected to MongoDB Atlas successfully!")
 
-	DB = client.Database("go-auth-api")
+	DB = client.Database(os.Getenv("DB_NAME"))
 
 	createIndexes()
 	fmt.Println("JWT Secret loaded successfully!")
