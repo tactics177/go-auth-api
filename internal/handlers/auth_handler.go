@@ -6,6 +6,7 @@ import (
 	"github.com/tactics177/go-auth-api/internal/repositories"
 	"github.com/tactics177/go-auth-api/internal/services"
 	"github.com/tactics177/go-auth-api/internal/utils"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 	"net/http"
 	"strings"
 	"time"
@@ -154,7 +155,6 @@ func GetUserProfile(c *gin.Context) {
 	})
 }
 
-// Logout Handler
 func Logout(c *gin.Context) {
 	authHeader := c.GetHeader("Authorization")
 	if !strings.HasPrefix(authHeader, "Bearer ") {
@@ -174,6 +174,11 @@ func Logout(c *gin.Context) {
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to blacklist token"})
 		return
+	}
+
+	objectID, err := primitive.ObjectIDFromHex(claims.UserID)
+	if err == nil {
+		_ = repositories.DeleteAllRefreshTokensForUser(objectID)
 	}
 
 	c.Status(http.StatusNoContent)
