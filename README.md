@@ -49,4 +49,5 @@ docker run `
   -p 8080:8080 `
   -e MONGO_URI="replace_with_mongodb_uri" `
   -e JWT_SECRET="replace_with_jwt_secret" `
+  -e DB_NAME="replace_with_db_name" `
   efrei/go-auth-api
