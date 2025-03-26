@@ -27,6 +27,7 @@ jobs:
           CI: true
           MONGO_URI: ${{ secrets.MONGO_URI }}
           DB_NAME: ${{ secrets.DB_NAME }}
+          JWT_SECRET: ${{ secrets.JWT_SECRET }}
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v2
