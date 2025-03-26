@@ -18,11 +18,6 @@ jobs:
         with:
           go-version: '1.24'
 
-      - name: Set up environment variables
-        run: |
-          echo "MONGO_URI=${{ secrets.MONGO_URI }}" >> .env
-          echo "DB_NAME=${{ secrets.DB_NAME }}" >> .env
-
       - name: Install dependencies
         run: go mod tidy
 
