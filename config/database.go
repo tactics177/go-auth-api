@@ -74,7 +74,7 @@ func createIndexes() {
 
 	// TTL index to auto-delete expired password reset tokens
 	resetIndex := mongo.IndexModel{
-		Keys:    bson.D{{"expires_at", 1}},
+		Keys:    bson.D{{Key: "expires_at", Value: 1}},
 		Options: options.Index().SetExpireAfterSeconds(0),
 	}
 	_, err = resetCollection.Indexes().CreateOne(ctx, resetIndex)
@@ -86,7 +86,7 @@ func createIndexes() {
 	blacklistCollection := DB.Collection("blacklisted_tokens")
 
 	ttlIndexBlacklistedToken := mongo.IndexModel{
-		Keys:    bson.D{{"expires_at", 1}},
+		Keys:    bson.D{{Key: "expires_at", Value: 1}},
 		Options: options.Index().SetExpireAfterSeconds(0),
 	}
 	_, err = blacklistCollection.Indexes().CreateOne(ctx, ttlIndexBlacklistedToken)
@@ -98,7 +98,7 @@ func createIndexes() {
 	refreshTokens := DB.Collection("refresh_tokens")
 
 	ttlIndexRefreshToken := mongo.IndexModel{
-		Keys: bson.D{{"expires_at", 1}},
+		Keys: bson.D{{Key: "expires_at", Value: 1}},
 		Options: options.Index().
 			SetExpireAfterSeconds(0),
 	}
