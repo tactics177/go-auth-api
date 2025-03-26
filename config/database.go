@@ -17,10 +17,11 @@ var DB *mongo.Database
 var JwtSecret string
 
 func ConnectDB() {
-	err := godotenv.Load()
-	// .env for local development, environment variables for cloud deployment
-	if err != nil {
-		log.Println("Warning: .env file not found, relying on environment variables")
+	if os.Getenv("CI") == "" {
+		err := godotenv.Load()
+		if err != nil {
+			log.Println("Warning: .env file not found, relying on system environment variables")
+		}
 	}
 
 	mongoURI := os.Getenv("MONGO_URI")

@@ -23,6 +23,10 @@ jobs:
 
       - name: Run tests
         run: go test ./... -v
+        env:
+          CI: true
+          MONGO_URI: ${{ secrets.MONGO_URI }}
+          DB_NAME: ${{ secrets.DB_NAME }}
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v2
