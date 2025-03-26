@@ -2,7 +2,6 @@ package repositories
 
 import (
 	"context"
-	"errors"
 	"time"
 
 	"github.com/tactics177/go-auth-api/config"
@@ -28,14 +27,20 @@ func SaveRefreshToken(userID primitive.ObjectID, token string, expiresAt time.Ti
 
 func FindRefreshToken(token string) (*models.RefreshToken, error) {
 	collection := config.DB.Collection("refresh_tokens")
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
 
-	var result models.RefreshToken
-	err := collection.FindOne(context.Background(), bson.M{"token": token}).Decode(&result)
+	var stored models.RefreshToken
+	err := collection.FindOne(ctx, bson.M{
+		"token":      token,
+		"expires_at": bson.M{"$gt": time.Now()},
+	}).Decode(&stored)
+
 	if err != nil {
-		return nil, errors.New("refresh token not found or expired")
+		return nil, err
 	}
 
-	return &result, nil
+	return &stored, nil
 }
 
 func DeleteAllRefreshTokensForUser(userID primitive.ObjectID) error {
